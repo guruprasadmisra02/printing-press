@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="container-fluid mt-4">
+
+  <!-- Page Header -->
+  <div class="d-flex justify-content-between align-items-center flex-wrap">
+    <h3 class="fw-bold text-primary">Owner Dashboard</h3>
+    <form method="post" class="d-flex align-items-center gap-2">
+      <label class="form-label mb-0 fw-semibold">Month:</label>
+      <input type="month" name="month" value="{{ selected_month }}" class="form-control form-control-sm" style="max-width: 200px;">
+      <button class="btn btn-sm btn-outline-primary">View</button>
+    </form>
+  </div>
+
+  <hr>
+
+  <!-- KPI CARDS -->
+  <div class="row g-3">
+    <div class="col-md-3 col-sm-6">
+      <div class="card shadow-sm border-0 rounded-3 text-center bg-light">
+        <div class="card-body">
+          <h6 class="text-muted">Total Orders</h6>
+          <h3 class="fw-bold text-dark">{{ total_orders }}</h3>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+      <div class="card shadow-sm border-0 rounded-3 text-center bg-light">
+        <div class="card-body">
+          <h6 class="text-muted">Stock Items</h6>
+          <h3 class="fw-bold text-success">{{ total_stock }}</h3>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+      <div class="card shadow-sm border-0 rounded-3 text-center bg-light">
+        <div class="card-body">
+          <h6 class="text-muted">Monthly Expenses</h6>
+          <h3 class="fw-bold text-danger">₹{{ '%.2f'|format(total_expenses) }}</h3>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+      <div class="card shadow-sm border-0 rounded-3 text-center bg-light">
+        <div class="card-body">
+          <h6 class="text-muted">Profit / Loss</h6>
+          {% if profit_loss >= 0 %}
+          <h3 class="fw-bold text-success">₹{{ '%.2f'|format(profit_loss) }}</h3>
+          {% else %}
+          <h3 class="fw-bold text-danger">₹{{ '%.2f'|format(profit_loss) }}</h3>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chart Section -->
+  <div class="card mt-4 shadow-sm border-0 rounded-3">
+    <div class="card-header bg-white fw-semibold text-primary">
+      Monthly Income vs Expenses
+    </div>
+    <div class="card-body">
+      <canvas id="financeChart" height="120"></canvas>
+    </div>
+  </div>
+
+  <!-- Quick Links -->
+  <div class="d-flex justify-content-around mt-4 flex-wrap gap-3">
+    <a href="{{ url_for('owner_orders') }}" class="btn btn-outline-primary btn-lg shadow-sm">📦 Manage Orders</a>
+    <a href="{{ url_for('owner_stock') }}" class="btn btn-outline-success btn-lg shadow-sm">📋 View Stock</a>
+    <a href="{{ url_for('expenses') }}" class="btn btn-outline-danger btn-lg shadow-sm">💰 Manage Expenses</a>
+    <a href="{{ url_for('owner_quotes') }}" class="btn btn-outline-secondary btn-lg shadow-sm">📝 View Quotes</a>
+  </div>
+
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+fetch('/owner/dashboard_data')
+  .then(res => res.json())
+  .then(data => {
+    const ctx = document.getElementById('financeChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: data.months.reverse(),
+        datasets: [
+          {
+            label: 'Income (₹)',
+            data: data.incomes.reverse(),
+            backgroundColor: 'rgba(75, 192, 192, 0.6)',
+            borderRadius: 8
+          },
+          {
+            label: 'Expenses (₹)',
+            data: data.expenses.reverse(),
+            backgroundColor: 'rgba(255, 99, 132, 0.6)',
+            borderRadius: 8
+          },
+          {
+            label: 'Profit (₹)',
+            data: data.profits.reverse(),
+            type: 'line',
+            borderColor: 'rgba(54, 162, 235, 0.8)',
+            backgroundColor: 'transparent',
+            borderWidth: 3,
+            tension: 0.3
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { position: 'top' },
+          title: { display: false }
+        },
+        scales: {
+          y: { beginAtZero: true }
+        }
+      }
+    });
+  });
+</script>
+
+{% endblock %}

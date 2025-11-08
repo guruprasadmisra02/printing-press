@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container my-4 p-4 bg-white rounded shadow">
+  <div class="text-center border-bottom pb-2 mb-3">
+    <h3 class="fw-bold text-primary">Ananta Balia Printers & Publishers</h3>
+    <p class="mb-0">Plot No. 523, Mahanadi Vihar, Cuttack - 753004, Nayabazar</p>
+    <p class="mb-0">📞 9937043648 | ✉️ pkmisctc17@gmail.com</p>
+    <p class="fst-italic">Book, Magazine, Invitation, Office & School Printing — Offset & Digital</p>
+  </div>
+
+  <div class="d-flex justify-content-between mb-3">
+    <div>
+      <p><strong>Bill No:</strong> {{ bill_id or "Auto" }}</p>
+      <p><strong>Date:</strong> {{ today }}</p>
+    </div>
+    <div>
+      <p><strong>Customer Name:</strong> {{ customer_name or "" }}</p>
+      <p><strong>Company GSTIN:</strong> {{ gstin or "-" }}</p>
+    </div>
+  </div>
+
+  <table class="table table-bordered text-center align-middle">
+    <thead class="table-dark">
+      <tr>
+        <th>#</th>
+        <th>Product Name</th>
+        <th>Size</th>
+        <th>Quantity</th>
+        <th>Unit Cost (₹)</th>
+        <th>Total (₹)</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% set total_sum = 0 %}
+      {% for o in orders %}
+      {% set line_total = (o['total_cost'] or 0) %}
+      {% set total_sum = total_sum + line_total %}
+      <tr>
+        <td>{{ loop.index }}</td>
+        <td>{{ o['product_name'] }}</td>
+        <td>{{ o['size'] or '-' }}</td>
+        <td>{{ o['quantity'] }}</td>
+        <td>{{ "%.2f"|format((o['total_cost'] or 0) / (o['quantity'] or 1)) }}</td>
+        <td>{{ "%.2f"|format(line_total) }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+    <tfoot>
+      <tr class="table-light">
+        <th colspan="5" class="text-end">Total Amount</th>
+        <th>₹ {{ "%.2f"|format(total_sum) }}</th>
+      </tr>
+    </tfoot>
+  </table>
+
+  <div class="text-center mt-4">
+    <p class="fw-semibold fst-italic text-success">
+      Thank you for choosing Ananta Balia Printers & Publishers!
+    </p>
+  </div>
+
+  <div class="text-center mt-3 d-flex justify-content-center gap-3">
+    <button class="btn btn-primary" onclick="window.print()">🖨️ Print Bill</button>
+    <a href="{{ url_for('download_bill_pdf', order_ids=order_ids|join(',')) }}" class="btn btn-outline-success">📥 Download PDF</a>
+  </div>
+</div>
+
+<style>
+  @media print {
+    .btn, nav, footer {
+      display: none !important;
+    }
+    body {
+      background: white !important;
+    }
+    .container {
+      box-shadow: none !important;
+    }
+  }
+</style>
+{% endblock %}
